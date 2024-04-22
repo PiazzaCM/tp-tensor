@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TensorFlow.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+</head>
+<body>
+    <script>
+        async function crearTensores() {
+            let tensor1 = tf.range(1, 101).reshape([10, 10]); // Crear un tensor de 10x10
+            let tensor2 = tf.range(1, 101).reshape([10, 10]);
+            
+            tensor1 = tf.reshape(tensor1, [500, 500]); // Cambiar la forma del tensor
+            tensor2 = tf.reshape(tensor2, [500, 500]); // Cambiar la forma del tensor
+
+            let resultado;
+            let iteraciones = 0; // Contador de iteraciones
+
+            do {
+                resultado = tensor1.matMul(tensor2);
+                await resultado.data(); // Espera a que se complete la multiplicación
+
+                tensor1.dispose(); // Liberar el tensor anterior
+                tensor1 = tensor2.clone(); // Clonar el tensor2 para la próxima iteración
+
+                tensor2.dispose(); // Liberar el tensor anterior
+                tensor2 = resultado.clone(); // Clonar el resultado para la próxima iteración
+
+                iteraciones++;
+
+                const memoriaBytes = tf.memory().numBytes; // Obtener la memoria en bytes
+                const memoriaMB = memoriaBytes / (1024 * 1024); // Convertir a MB
+                console.log(`Iteración: ${iteraciones}, Tamaño del tensor en MB: ${memoriaMB.toFixed(2)}`); // Mostrar el tamaño del tensor
+            } while (resultado.size < 64 * 1024 * 1024); // Mientras el tamaño del tensor sea menor a 64 MB
+
+            console.log("El tamaño del tensor excede los 64 MB.");
+            console.log("Iteraciones totales:", iteraciones);
+            console.log("Tensor final:", resultado.toString());
+
+            // Liberar memoria al finalizar
+            tensor1.dispose();
+            tensor2.dispose();
+            resultado.dispose();
+        }
+
+        crearTensores();
+    </script>
+</body>
+</html>
